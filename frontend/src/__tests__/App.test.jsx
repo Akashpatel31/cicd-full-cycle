@@ -14,7 +14,7 @@ test('renders React frontend and displays backend message', async () => {
   render(<App />);
 
   // Wait for the static text to appear (this allows time for rendering)
-  await waitFor(() => expect(screen.getByText(/React Frontend and it is too/i)).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByText(/React Frontent header/i)).toBeInTheDocument());
 
   // Wait for the async fetch to complete and check for the backend message
   await waitFor(() => expect(screen.getByText(/Hello from Backend!/)).toBeInTheDocument());
@@ -27,4 +27,4 @@ test('renders React frontend and displays backend message', async () => {
 // Reset mocks after each test to avoid interference
 afterEach(() => {
   jest.restoreAllMocks(); // This will restore the fetch mock to its original state
-});
+}); 
