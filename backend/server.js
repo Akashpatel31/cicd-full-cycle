@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
 });
 
 // Set the port for the backend
-const port = process.env.PORT || 5001;
+const port = process.env.PORT || 5004;
 app.listen(port, () => {
   console.log(`Backend running on http://localhost:${port}`);
 });

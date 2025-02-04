@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - dev
+      - main
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -42,7 +42,7 @@ jobs:
         run: npm install
 
       - name: Build Backend Docker Image
-        run: docker build -t my-project-backend ./backend
+        run: docker build -t cicd-full-cycle-backend ./backend
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -52,8 +52,8 @@ jobs:
 
       - name: Tag & Push Backend Docker Image
         run: |
-          docker tag my-project-backend docker.io/akash3103/my-project-backend:latest
-          docker push docker.io/akash3103/my-project-backend:latest
+          docker tag cicd-full-cycle-backend docker.io/akash3103/cicd-backend:latest
+          docker push docker.io/akash3103/cicd-backend:latest
 
   # Step 3: Frontend Build & Deploy (Only if SonarQube Passes)
   frontend:
@@ -77,7 +77,7 @@ jobs:
         run: npm run build
 
       - name: Build Frontend Docker Image
-        run: docker build -t my-project-frontend ./frontend
+        run: docker build -t cicd-full-cycle-frontend ./frontend
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -87,8 +87,8 @@ jobs:
 
       - name: Tag & Push Frontend Docker Image
         run: |
-          docker tag my-project-frontend docker.io/akash3103/my-project-frontend:latest
-          docker push docker.io/akash3103/my-project-frontend:latest
+          docker tag cicd-full-cycle-frontend docker.io/akash3103/cicd-frontend:latest
+          docker push docker.io/akash3103/cicd-frontend:latest
 
   # Step 4: Cleanup
   cleanup:
