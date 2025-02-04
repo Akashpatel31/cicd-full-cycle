@@ -4,7 +4,7 @@ function App() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    fetch("localhost:5004")
+    fetch("https://cicd-backend.onrender.com/")
       .then((res) => res.json())
       .then((data) => setMessage(data.message))
       .catch((err) => console.error(err));
@@ -12,7 +12,7 @@ function App() {
 
   return (
     <div>
-      <h1>React Frontend</h1>
+      <h1>React Frontend and it is too</h1>
       <p>{message}</p>
     </div>
   );
