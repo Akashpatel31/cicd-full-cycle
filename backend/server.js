@@ -19,8 +19,12 @@ app.get('/', (req, res) => {
 
 // Set the port for the backend
 const port = process.env.PORT || 5004;
-app.listen(port, () => {
-  console.log(`Backend running on http://localhost:${port}`);
-});
 
-export { app };
+// Only start the server if not in a test environment
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    console.log(`Backend running on http://localhost:${port}`);
+  });
+}
+
+export default app;
