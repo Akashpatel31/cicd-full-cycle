@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: docker.io/akash3103/my-project-backend:latest
+        image: docker.io/akash3103/cicd-backend:latest
         ports:
         - containerPort: 8080
 ---
