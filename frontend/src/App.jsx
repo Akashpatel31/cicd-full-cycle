@@ -12,7 +12,7 @@ function App() {
 
   return (
     <div>
-      <h1>React Frontend and it is too</h1>
+      <h1>React Frontent header</h1>
       <p>{message}</p>
     </div>
   );
