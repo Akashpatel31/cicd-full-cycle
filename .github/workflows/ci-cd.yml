@@ -44,6 +44,8 @@ jobs:
       # Run Tests for Backend (if any)
       - name: Run Backend Tests
         working-directory: ./backend
+        env:
+          CI: true
         run: npm test
 
       - name: Build Backend Docker Image
