@@ -119,10 +119,10 @@ jobs:
     steps:
       - name: Set up Kubernetes
         run: |
-          kubectl apply -f cicd-full-cycle/k8s/backend-deployment.yaml --validate=false
-          kubectl apply -f cicd-full-cycle/k8s/backend-service.yaml --validate=false
-          kubectl apply -f cicd-full-cycle/k8s/frontend-deployment.yaml --validate=false
-          kubectl apply -f cicd-full-cycle/k8s/frontend-service.yaml --validate=false
+          kubectl apply -f k8s/backend-deployment.yaml --validate=false
+          kubectl apply -f k8s/backend-service.yaml --validate=false
+          kubectl apply -f k8s/frontend-deployment.yaml --validate=false
+          kubectl apply -f k8s/frontend-service.yaml --validate=false
 
   security-scan:
     name: Kubernetes Security Scan
