@@ -161,11 +161,12 @@ jobs:
         run: |
           kubectl apply -f k8s/production-deployment.yaml --validate=false
           kubectl apply -f k8s/production-service.yaml --validate=false
-
-  # Step 4: Cleanup
+    # Step 4: Cleanup
   cleanup:
-    needs: [backend, frontend]  # Ensures cleanup happens after both builds
+    needs: [backend, frontend, production-deploy]  # Ensures cleanup happens after both builds and production deployment
     runs-on: ubuntu-latest
     steps:
       - name: Clean up Docker images
-        run: docker system prune -f
+        run: |
+          docker system prune -f
+
