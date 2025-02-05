@@ -156,6 +156,10 @@ jobs:
       - name: Update kubeconfig for Production
         run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
 
+      - name: Deploy Production Manifests
+        run: |
+          kubectl apply -f k8s/production-deployment.yaml --validate=false
+          kubectl apply -f k8s/production-service.yaml --validate=false
       # Deploy backend and frontend manifests
       - name: Deploy Backend Manifests
         run: |

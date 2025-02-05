@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: cicd-full-cycle-backend:latest
+        image: docker.io/akash3103/cicd-backend:latest
         imagePullPolicy: Never
         ports:
         - containerPort: 8080
