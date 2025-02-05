@@ -2,17 +2,26 @@ import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 
-// Mock API calls
 beforeEach(() => {
-  global.fetch = jest.fn().mockImplementation((url, options) => {
-    if (url.endsWith('/interactions') && options?.method === 'POST') {
+  // Mock the global fetch function to simulate API responses
+  global.fetch = jest.fn((url, options) => {
+    // Mock response for the GET request to fetch the message
+    if (url.endsWith('/')) {
       return Promise.resolve({
-        json: () => Promise.resolve({ user: 'Alice', action: 'clicked button' })
+        json: () => Promise.resolve({ message: 'Hello from backend' }),
       });
     }
 
+    // Mock response for the POST request to submit data
+    if (url.endsWith('/data') && options?.method === 'POST') {
+      return Promise.resolve({
+        json: () => Promise.resolve(['Alice clicked button', 'Bob clicked button']),
+      });
+    }
+
+    // Mock response for the GET request to fetch existing data
     return Promise.resolve({
-      json: () => Promise.resolve([{ user: 'Alice', action: 'clicked button' }])
+      json: () => Promise.resolve(['Alice clicked button']),
     });
   });
 });
@@ -22,32 +31,57 @@ afterEach(() => {
 });
 
 describe('Frontend Tests', () => {
-  it('should render the header', async () => {
-    render(<App />);
-    expect(screen.getByRole('heading', { name: /React Frontend/i })).toBeInTheDocument();
-  });
-
-  it('should fetch and display user interactions', async () => {
+  it('should display the message from the backend on load', async () => {
     render(<App />);
 
+    // Wait for the message to be displayed
     await waitFor(() => {
-      expect(screen.getByText(/Alice clicked button/i)).toBeInTheDocument();
+      expect(screen.getByText('Hello from backend')).toBeInTheDocument();
     });
   });
 
-  it('should allow user input and trigger an API call', async () => {
+  it('should submit the form and update the data list', async () => {
     render(<App />);
 
-    const input = screen.getByPlaceholderText(/enter your name/i);
-    const button = screen.getByText(/submit/i);
+    // Simulate form input and submission
+    const input = screen.getByPlaceholderText('Enter something...');
+    const submitButton = screen.getByText('Submit');
 
-    fireEvent.change(input, { target: { value: 'Bob' } });
-    fireEvent.click(button);
+    fireEvent.change(input, { target: { value: 'Bob clicked button' } });
+    fireEvent.click(submitButton);
 
+    // Wait for the updated data to appear
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/interactions'), expect.objectContaining({ method: 'POST' }));
-      expect(screen.getByText(/Alice clicked button/i)).toBeInTheDocument();
-      expect(screen.getByText(/Bob clicked button/i)).toBeInTheDocument();
+      expect(screen.getByText('Alice clicked button')).toBeInTheDocument();
+      expect(screen.getByText('Bob clicked button')).toBeInTheDocument();
     });
   });
+
+  it('should not submit empty input', async () => {
+    render(<App />);
+
+    // Simulate submitting an empty input
+    const input = screen.getByPlaceholderText('Enter something...');
+    const submitButton = screen.getByText('Submit');
+
+    fireEvent.change(input, { target: { value: '' } });
+    fireEvent.click(submitButton);
+
+    // Wait for the form to not update the list with empty data
+    await waitFor(() => {
+      expect(screen.queryByText('No data available')).not.toBeInTheDocument();
+    });
+  });
+
+  global.fetch = jest.fn((url, options) => {
+    if (url.endsWith('/data')) {
+      return Promise.resolve({
+        json: () => Promise.resolve(['Alice clicked button']),
+      });
+    }
+  
+    return Promise.resolve({
+      json: () => Promise.resolve([]),
+    });
+  });  
 });

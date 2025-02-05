@@ -12,16 +12,7 @@ function App() {
       .then((data) => setMessage(data.message))
       .catch((err) => console.error(err));
   }, []);
-
-  useEffect(() => {
-    fetch('http://localhost:5004/health')
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message))
-      .catch((err) => console.error(err));
-
-    fetchData();
-  }, []);
-
+  
   const fetchData = () => {
     fetch('http://localhost:5004/data')
       .then((res) => res.json())
