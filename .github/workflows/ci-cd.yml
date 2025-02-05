@@ -11,12 +11,12 @@ jobs:
   # Step 1: SonarQube Analysis
   sonarqube:
     name: SonarQube
-    runs-on: ubuntu-latest  # Changed to Ubuntu for consistency
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Ensures complete history for better analysis
+          fetch-depth: 0
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
@@ -26,7 +26,7 @@ jobs:
 
   # Step 2: Backend Build & Deploy (Only if SonarQube Passes)
   backend:
-    needs: [sonarqube]  # Ensures SonarQube runs first
+    needs: [sonarqube]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -47,14 +47,16 @@ jobs:
           NODE_ENV: test
           CI: true
         run: npm test
-      
 
       - name: Build Backend Docker Image
         run: docker build -t cicd-full-cycle-backend ./backend
 
+      - name: Tag Backend Image for Scanning
+        run: docker tag cicd-full-cycle-backend cicd-full-cycle-backend:latest
+
       - name: Trivy Vulnerability Scan (Backend)
         run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image cicd-full-cycle-backend:latest
-      
+
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -68,7 +70,7 @@ jobs:
 
   # Step 3: Frontend Build & Deploy (Only if SonarQube Passes)
   frontend:
-    needs: [sonarqube]  # Ensures SonarQube runs first
+    needs: [sonarqube]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -82,7 +84,7 @@ jobs:
       - name: Install Dependencies (Frontend)
         working-directory: ./frontend
         run: npm install
-      
+
       - name: Run Frontend Tests
         working-directory: ./frontend
         env:
@@ -97,7 +99,10 @@ jobs:
       - name: Build Frontend Docker Image
         run: docker build -t cicd-full-cycle-frontend ./frontend
 
-      - name: Trivy Vulnerability Scan (Backend)
+      - name: Tag Frontend Image for Scanning
+        run: docker tag cicd-full-cycle-frontend cicd-full-cycle-frontend:latest
+
+      - name: Trivy Vulnerability Scan (Frontend)
         run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image cicd-full-cycle-frontend:latest
 
       - name: Login to Docker Hub
@@ -110,66 +115,11 @@ jobs:
         run: |
           docker tag cicd-full-cycle-frontend docker.io/akash3103/cicd-frontend:latest
           docker push docker.io/akash3103/cicd-frontend:latest
- 
-  deploy:
-    name: Deploy to Kubernetes
-    runs-on: ubuntu-latest
-    needs: [backend, frontend]
-    
-    steps:
-      - name: Checkout Repository  # This ensures the YAML files exist
-        uses: actions/checkout@v3
 
-      - name: Set up Kubernetes
-        run: |
-          kubectl apply -f k8s/backend-deployment.yaml --validate=false
-          kubectl apply -f k8s/backend-service.yaml --validate=false
-          kubectl apply -f k8s/frontend-deployment.yaml --validate=false
-          kubectl apply -f k8s/frontend-service.yaml --validate=false
-
-  security-scan:
-    name: Kubernetes Security Scan
-    runs-on: ubuntu-latest
-    needs: deploy
-
-    steps:
-      - name: Run KubeAudit Scan
-        run: |
-          kubeaudit all --namespace default
-
-  notify:
-    name: Send Notifications
-    runs-on: ubuntu-latest
-    needs: security-scan
-
-    steps:
-      - name: Send Email Notification
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          to: recipient@example.com
-          subject: "CI/CD Pipeline Completed"
-          body: "The CI/CD pipeline has completed successfully. The application is deployed to Kubernetes."
-
-  production-deploy:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: notify
-
-    steps:
-      - name: Deploy to Production
-        run: |
-          kubectl apply -f k8s/production-deployment.yaml --validate=false
-          kubectl apply -f k8s/production-service.yaml --validate=false
-    # Step 4: Cleanup
+  # Step 4: Cleanup
   cleanup:
-    needs: [backend, frontend, production-deploy]  # Ensures cleanup happens after both builds and production deployment
+    needs: [backend, frontend]
     runs-on: ubuntu-latest
     steps:
       - name: Clean up Docker images
-        run: |
-          docker system prune -f
-
+        run: docker system prune -f

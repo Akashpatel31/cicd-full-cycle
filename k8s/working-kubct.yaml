@@ -51,3 +51,14 @@ deploy:
         run: |
           kubectl apply -f k8s/production-deployment.yaml --validate=false
           kubectl apply -f k8s/production-service.yaml --validate=false
+
+- name: Check SonarQube Quality Gate
+        run: |
+          SONAR_STATUS=$(curl -s -u "${{ secrets.SONAR_TOKEN }}:" \
+            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=my-project" \
+            | jq -r '.projectStatus.status')
+          if [[ "$SONAR_STATUS" != "OK" ]]; then
+            echo "❌ SonarQube Quality Gate Failed"
+            exit 1
+          fi
+        shell: bash
