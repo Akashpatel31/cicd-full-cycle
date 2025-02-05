@@ -21,6 +21,12 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Validate input: Check if the trimmed input is empty
+    if (!input.trim()) {
+      alert("Please enter something before submitting.");
+      return;
+    }
+    
     fetch('http://localhost:5004/data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
