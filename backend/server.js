@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import fs from 'fs';
 
 const app = express();
 app.use(cors());
@@ -7,10 +8,16 @@ app.use(express.json()); // Middleware to parse JSON requests
 
 let storedData = []; // Temporary in-memory storage
 
-// Health Check API
-app.get('/health', (req, res) => {
-  res.json({ message: 'Backend is running' });
+// Default route
+app.get('/', (req, res) => {
+  res.json({ message: "Hello from Node.js is the best !" });
 });
+
+app.get('/health', (req, res) => {
+  const isDocker = fs.existsSync("/.dockerenv") ? "Docker" : "Not Docker";
+  res.json({ message: isDocker });
+});
+
 // Fetch stored data
 app.get('/data', (req, res) => {
   res.json(storedData);

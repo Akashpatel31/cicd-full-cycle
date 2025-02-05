@@ -7,6 +7,13 @@ function App() {
   const [dataList, setDataList] = useState([]);
 
   useEffect(() => {
+    fetch("http://localhost:5004/")
+      .then((res) => res.json())
+      .then((data) => setMessage(data.message))
+      .catch((err) => console.error(err));
+  }, []);
+
+  useEffect(() => {
     fetch('http://localhost:5004/health')
       .then((res) => res.json())
       .then((data) => setMessage(data.message))
