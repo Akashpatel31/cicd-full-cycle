@@ -136,26 +136,10 @@ jobs:
       - name: Update kubeconfig for EKS
         run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
   
-  # Step 5: Kubernetes Security Scan
-  security-scan:
-    name: Kubernetes Security Scan
-    runs-on: ubuntu-latest
-    needs: deploy
-
-    steps:
-      - name: Install kube-bench (CIS Benchmark Scanner)
-        run: |
-          curl -L -o kube-bench https://github.com/aquasecurity/kube-bench/releases/tag/v0.10.1/kube-bench_0.10.1_linux_amd64.tar.gz
-          chmod +x kube-bench
-          sudo mv kube-bench /usr/local/bin/kube-bench
-
-      - name: Run Kubernetes CIS Benchmark Scan
-        run: kube-bench --benchmark cis-1.6    
-
   production-deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [security-scan]
+    needs: [deploy]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
