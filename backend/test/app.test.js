@@ -1,19 +1,29 @@
 import request from 'supertest';
-import { expect } from 'chai';
-import { app } from '../server.js'; // Adjust according to your export style
+import { app } from '../server'; // Ensure this path is correct
 
-describe('GET /health', () => {
-  it('should return a JSON response indicating if running in Docker', (done) => {
-    request(app)
-      .get('/health')
-      .set('Accept', 'application/json')
-      .expect('Content-Type', /json/)
-      .expect(200)
-      .end((err, res) => {
-        if (err) return done(err);
-        // Verify that the response contains a "message" property
-        expect(res.body).to.have.property('message');
-        done();
-      });
+describe('Backend API Tests', () => {
+  it('should return a welcome message from the backend', async () => {
+    const res = await request(app).get('/');
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('message');
+  });
+
+  it('should handle user interactions (store and retrieve)', async () => {
+    const newUserInteraction = { user: 'Alice', action: 'clicked button' };
+
+    // Send user interaction to backend
+    const postRes = await request(app)
+      .post('/interactions')
+      .send(newUserInteraction);
+
+    expect(postRes.statusCode).toBe(201);
+    expect(postRes.body).toEqual(expect.objectContaining(newUserInteraction));
+
+    // Retrieve interactions
+    const getRes = await request(app).get('/interactions');
+    expect(getRes.statusCode).toBe(200);
+    expect(getRes.body).toEqual(
+      expect.arrayContaining([expect.objectContaining(newUserInteraction)])
+    );
   });
 });

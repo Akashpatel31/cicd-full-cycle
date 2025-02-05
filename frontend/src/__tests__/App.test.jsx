@@ -1,30 +1,53 @@
-import '@testing-library/jest-dom';  // This is necessary for .toBeInTheDocument matcher
-import { render, screen, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 
+// Mock API calls
 beforeEach(() => {
-  // Mock fetch globally using jest.spyOn
-  jest.spyOn(global, 'fetch').mockResolvedValue({
-    json: jest.fn().mockResolvedValue({ message: 'Hello from Backend!' })
+  global.fetch = jest.fn().mockImplementation((url, options) => {
+    if (url.endsWith('/interactions') && options?.method === 'POST') {
+      return Promise.resolve({
+        json: () => Promise.resolve({ user: 'Alice', action: 'clicked button' })
+      });
+    }
+
+    return Promise.resolve({
+      json: () => Promise.resolve([{ user: 'Alice', action: 'clicked button' }])
+    });
   });
 });
 
-test('renders React frontend and displays backend message', async () => {
-  // Render the component
-  render(<App />);
-
-  // Wait for the static text to appear (this allows time for rendering)
-  await waitFor(() => expect(screen.getByText(/React Frontent header/i)).toBeInTheDocument());
-
-  // Wait for the async fetch to complete and check for the backend message
-  await waitFor(() => expect(screen.getByText(/Hello from Backend!/)).toBeInTheDocument());
-
-  // Optionally check if the fetch was called once
-  expect(global.fetch).toHaveBeenCalledTimes(1);
-  expect(global.fetch).toHaveBeenCalledWith("https://cicd-backend.onrender.com/");  // Ensure it's making the correct API call
+afterEach(() => {
+  jest.restoreAllMocks();
 });
 
-// Reset mocks after each test to avoid interference
-afterEach(() => {
-  jest.restoreAllMocks(); // This will restore the fetch mock to its original state
-}); 
+describe('Frontend Tests', () => {
+  it('should render the header', async () => {
+    render(<App />);
+    expect(screen.getByRole('heading', { name: /React Frontend/i })).toBeInTheDocument();
+  });
+
+  it('should fetch and display user interactions', async () => {
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Alice clicked button/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should allow user input and trigger an API call', async () => {
+    render(<App />);
+
+    const input = screen.getByPlaceholderText(/enter your name/i);
+    const button = screen.getByText(/submit/i);
+
+    fireEvent.change(input, { target: { value: 'Bob' } });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/interactions'), expect.objectContaining({ method: 'POST' }));
+      expect(screen.getByText(/Alice clicked button/i)).toBeInTheDocument();
+      expect(screen.getByText(/Bob clicked button/i)).toBeInTheDocument();
+    });
+  });
+});

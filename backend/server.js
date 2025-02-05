@@ -1,41 +1,28 @@
 import express from 'express';
 import cors from 'cors';
-import fs from 'fs';
-import axios from 'axios';
 
 const app = express();
-
-// Enable CORS for all routes
 app.use(cors());
+app.use(express.json()); // Middleware to parse JSON requests
 
+let storedData = []; // Temporary in-memory storage
+
+// Health Check API
 app.get('/health', (req, res) => {
-  const isDocker = fs.existsSync("/.dockerenv") ? "Docker" : "Not Docker";
-  res.json({ message: isDocker });
+  res.json({ message: 'Backend is running' });
+});
+// Fetch stored data
+app.get('/data', (req, res) => {
+  res.json(storedData);
 });
 
-// Default route
-app.get('/', (req, res) => {
-  res.json({ message: "Hello from Node.js and I'm backend" });
-});
-// New endpoint: Fetch posts from JSONPlaceholder
-app.get('/posts', async (req, res) => {
-  try {
-    const response = await axios.get("https://jsonplaceholder.typicode.com/posts");
-    res.json(response.data);
-  } catch (error) {
-    console.error("Error fetching posts:", error);
-    res.status(500).json({ error: "Failed to fetch posts" });
-  }
-});
-// New endpoint: Fetch a random user from Random User API
-app.get('/random-user', async (req, res) => {
-  try {
-    const response = await axios.get("https://randomuser.me/api/");
-    res.json(response.data);
-  } catch (error) {
-    console.error("Error fetching random user:", error);
-    res.status(500).json({ error: "Failed to fetch random user" });
-  }
+// Store user-submitted data
+app.post('/data', (req, res) => {
+  const { input } = req.body;
+  if (!input) return res.status(400).json({ error: 'Input is required' });
+  
+  storedData.push(input); // Store input in memory
+  res.json(storedData); // Return updated list
 });
 // Set the port for the backend
 const port = process.env.PORT || 5004;
