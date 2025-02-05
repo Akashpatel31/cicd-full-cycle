@@ -1,0 +1,12 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: deployment-success-notification
+spec:
+  template:
+    spec:
+      containers:
+        - name: email-sender
+          image: busybox
+          command: ["/bin/sh", "-c", "echo -e 'Subject: Deployment Complete\n\nYour Kubernetes app is deployed!' | sendmail -S localhost -t"]
+      restartPolicy: Never
