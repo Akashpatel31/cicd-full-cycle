@@ -133,7 +133,7 @@ jobs:
       
       # Update kubeconfig so kubectl can access your EKS cluster
       - name: Update kubeconfig for EKS
-        run: aws eks update-kubeconfig --name ${{ secrets.AWS_EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
+        run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
   
   production-deploy:
     name: Deploy to Production
@@ -153,7 +153,7 @@ jobs:
           
       # Update kubeconfig for production (if production cluster is the same as dev, otherwise adjust)
       - name: Update kubeconfig for Production
-        run: aws eks update-kubeconfig --name ${{ secrets.AWS_EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
+        run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
 
       # Deploy backend and frontend manifests
       - name: Deploy Backend Manifests
