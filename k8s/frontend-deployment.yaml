@@ -15,7 +15,6 @@ spec:
       containers:
       - name: frontend
         image: docker.io/akash3103/cicd-frontend:latest
-        imagePullPolicy: Never
         ports:
         - containerPort: 80
 ---
