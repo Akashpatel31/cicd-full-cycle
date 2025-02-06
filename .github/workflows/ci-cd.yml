@@ -45,8 +45,6 @@ jobs:
               --nodes-min 1 \
               --nodes-max 3 \
               --managed
-              --vpc-public-subnets "subnet-xxxxxx,subnet-yyyyyy" \
-              --vpc-private-subnets ""  # No private subnets, only public for now
 
       - name: Update kubeconfig for EKS
         run: aws eks update-kubeconfig --name my-new-cluster --region ${{ secrets.AWS_REGION }}
