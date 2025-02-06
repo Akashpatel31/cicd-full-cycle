@@ -8,10 +8,48 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  # Step 1: SonarQube Analysis
+  # Step 1: Create EKS Cluster
+  create-eks-cluster:
+    name: Create EKS Cluster
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Install eksctl
+        run: |
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/v0.56.0/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
+
+      - name: Create EKS Cluster
+        run: |
+            eksctl create cluster \
+              --name my-cluster \
+              --region ${{ secrets.AWS_REGION }} \
+              --nodegroup-name my-nodegroup \
+              --node-type t2.micro \
+              --nodes 2 \
+              --nodes-min 1 \
+              --nodes-max 3 \
+              --managed
+
+      - name: Update kubeconfig for EKS
+        run: aws eks update-kubeconfig --name my-cluster --region ${{ secrets.AWS_REGION }}
+
+  # Step 2: SonarQube Analysis
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest
+    needs: create-eks-cluster
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -134,7 +172,7 @@ jobs:
       
       # Update kubeconfig so kubectl can access your EKS cluster
       - name: Update kubeconfig for EKS
-        run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
+        run: aws eks update-kubeconfig --name my-cluster --region ${{ secrets.AWS_REGION }}
   
   production-deploy:
     name: Deploy to Production
@@ -154,7 +192,7 @@ jobs:
           
       # Update kubeconfig for production (if production cluster is the same as dev, otherwise adjust)
       - name: Update kubeconfig for Production
-        run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
+        run: aws eks update-kubeconfig --name my-cluster --region ${{ secrets.AWS_REGION }}
 
       # Deploy backend and frontend manifests
       - name: Deploy Backend Manifests

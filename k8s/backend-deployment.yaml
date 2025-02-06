@@ -13,11 +13,11 @@ spec:
         app: backend
     spec:
       nodeSelector:
-        instance-type: t2.micro  # Forces pod to run on t2.micro nodes
+        node.kubernetes.io/instance-type: "t2.micro"  # Ensure this matches your node label
       containers:
       - name: backend
         image: docker.io/akash3103/cicd-backend:latest
-        imagePullPolicy: Never
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
 ---

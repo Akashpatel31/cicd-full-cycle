@@ -13,11 +13,11 @@ spec:
         app: frontend
     spec:
       nodeSelector:
-        instance-type: t2.micro  # Forces pod to run on t2.micro nodes
+        node.kubernetes.io/instance-type: "t2.micro"  # Ensure this matches your node label
       containers:
       - name: frontend
         image: docker.io/akash3103/cicd-frontend:latest
-        imagePullPolicy: Never
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
 ---
