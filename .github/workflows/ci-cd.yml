@@ -36,9 +36,13 @@ jobs:
 
       - name: Create EKS Cluster
         run: |
+          if eksctl get cluster --name my-new-cluster --region ${{ secrets.AWS_REGION }}; then
+              echo "Cluster exists, updating..."
+          else
               eksctl create cluster \
               --name my-new-cluster \
               --region ${{ secrets.AWS_REGION }}
+          fi
 
       - name: Update kubeconfig for EKS
         run: aws eks update-kubeconfig --name my-new-cluster --region ${{ secrets.AWS_REGION }}
