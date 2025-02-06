@@ -37,7 +37,7 @@ jobs:
       - name: Create EKS Cluster
         run: |
             eksctl create cluster \
-              --name my-new \
+              --name my-new-cluster \
               --region ${{ secrets.AWS_REGION }} \
               --nodegroup-name my-nodegroup \
               --node-type t2.micro \
@@ -45,12 +45,11 @@ jobs:
               --nodes-min 1 \
               --nodes-max 3 \
               --managed
-              --public-access \
               --vpc-public-subnets "subnet-xxxxxx,subnet-yyyyyy" \
               --vpc-private-subnets ""  # No private subnets, only public for now
 
       - name: Update kubeconfig for EKS
-        run: aws eks update-kubeconfig --name my-new --region ${{ secrets.AWS_REGION }}
+        run: aws eks update-kubeconfig --name my-new-cluster --region ${{ secrets.AWS_REGION }}
 
   # Step 2: SonarQube Analysis
   sonarqube:
@@ -179,7 +178,7 @@ jobs:
       
       # Update kubeconfig so kubectl can access your EKS cluster
       - name: Update kubeconfig for EKS
-        run: aws eks update-kubeconfig --name my-new --region ${{ secrets.AWS_REGION }}
+        run: aws eks update-kubeconfig --name my-new-cluster --region ${{ secrets.AWS_REGION }}
   
   production-deploy:
     name: Deploy to Production
@@ -199,7 +198,7 @@ jobs:
           
       # Update kubeconfig for production (if production cluster is the same as dev, otherwise adjust)
       - name: Update kubeconfig for Production
-        run: aws eks update-kubeconfig --name my-new --region ${{ secrets.AWS_REGION }}
+        run: aws eks update-kubeconfig --name my-new-cluster --region ${{ secrets.AWS_REGION }}
 
       # Deploy backend and frontend manifests
       - name: Deploy Backend Manifests
