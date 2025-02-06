@@ -8,90 +8,9 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  # Step 1: Create EKS Cluster
-  create-eks-cluster:
-    name: Create EKS Cluster
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-      
-      - name: Install eksctl
-        run: |
-          curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_linux_amd64.tar.gz"
-          curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_linux_amd64.tar.gz"
-    
-          # Extract the tarball to /tmp directory
-          tar -xzvf eksctl_linux_amd64.tar.gz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
-
-      - name: Create EKS Cluster
-        run: |
-          if eksctl get cluster --name my-new-cluster --region ${{ secrets.AWS_REGION }}; then
-            echo "Cluster exists, updating instances..."
-            
-            # Check if the node group exists
-            if eksctl get nodegroup --cluster my-new-cluster --name ng-2c948c80 --region ${{ secrets.AWS_REGION }}; then
-              # Scale the node group to update instances
-              eksctl scale nodegroup --name ng-2c948c80 --cluster my-new-cluster --region ${{ secrets.AWS_REGION }} --nodes 3 --nodes-min 1 --nodes-max 5
-            else
-              echo "Node group does not exist, creating node group..."
-              # Create the node group if it does not exist
-              eksctl create nodegroup \
-                --cluster my-new-cluster \
-                --region ${{ secrets.AWS_REGION }} \
-                --name my-new-cluster-nodegroup \
-                --node-type t3.medium \
-                --nodes 3 \
-                --nodes-min 1 \
-                --nodes-max 5 \
-                --managed
-            fi
-
-            # Wait for new instances to be ready
-            echo "Waiting for new nodes to be ready..."
-            for i in {1..30}; do
-              READY_NODES=$(kubectl get nodes --selector=eks.amazonaws.com/nodegroup=ng-2c948c80 --field-selector=status.conditions[?(@.type==\"Ready\")].status==True --no-headers | wc -l)
-              if [ "$READY_NODES" -ge 3 ]; then
-                echo "All nodes are ready."
-                break
-              fi
-              echo "Waiting for nodes to be ready... ($i/30)"
-              sleep 30
-            done
-
-          else
-            echo "Cluster does not exist, creating a new cluster..."
-
-            # Create a new cluster if it doesn't exist
-            eksctl create cluster \
-              --name my-new-cluster \
-              --region ${{ secrets.AWS_REGION }} \
-              --nodegroup-name my-new-cluster-nodegroup \
-              --node-type t3.medium \
-              --nodes 3 \
-              --nodes-min 1 \
-              --nodes-max 5 \
-              --managed
-          fi
-
-      - name: Update kubeconfig for EKS
-        run: aws eks update-kubeconfig --name my-new-cluster --region ${{ secrets.AWS_REGION }}
-
-  # Step 2: SonarQube Analysis
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest
-    needs: create-eks-cluster
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -214,7 +133,7 @@ jobs:
       
       # Update kubeconfig so kubectl can access your EKS cluster
       - name: Update kubeconfig for EKS
-        run: aws eks update-kubeconfig --name my-new-cluster --region ${{ secrets.AWS_REGION }}
+        run: aws eks update-kubeconfig --name ${{ secrets.AWS_EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
   
   production-deploy:
     name: Deploy to Production
@@ -234,7 +153,7 @@ jobs:
           
       # Update kubeconfig for production (if production cluster is the same as dev, otherwise adjust)
       - name: Update kubeconfig for Production
-        run: aws eks update-kubeconfig --name my-new-cluster --region ${{ secrets.AWS_REGION }}
+        run: aws eks update-kubeconfig --name ${{ secrets.AWS_EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
 
       # Deploy backend and frontend manifests
       - name: Deploy Backend Manifests
