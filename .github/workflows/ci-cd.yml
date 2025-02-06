@@ -39,7 +39,7 @@ jobs:
           if eksctl get cluster --name my-new-cluster --region ${{ secrets.AWS_REGION }}; then
               echo "Cluster exists, updating..."
           # Scale the node group to update instances
-            eksctl scale nodegroup --name eksctl-my-new-cluster-nodegroup --cluster my-new-cluster --region ${{ secrets.AWS_REGION }} --nodes 3 --nodes-min 1 --nodes-max 5
+            eksctl scale nodegroup --name my-new-cluster-nodegroup-ng-2c948c80 --cluster my-new-cluster --region ${{ secrets.AWS_REGION }} --nodes 3 --nodes-min 1 --nodes-max 5
 
           echo "Waiting for new nodes to be ready..."
           sleep 60
