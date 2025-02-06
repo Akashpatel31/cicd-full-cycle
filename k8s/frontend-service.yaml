@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: frontend-service
   annotations:
-    service.beta.kubernetes.io/aws-load-balancer-internal: "true"  # This makes the LB internal
+    service.beta.kubernetes.io/aws-load-balancer-internal: "false"  # This makes the LB internal
 spec:
   selector:
     app: frontend
