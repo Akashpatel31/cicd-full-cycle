@@ -7,14 +7,14 @@ function App() {
   const [dataList, setDataList] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5004/")
+    fetch("http://a1f75d954086d4c0f8d513f22340dc4a-1181113313.us-east-2.elb.amazonaws.com/")
       .then((res) => res.json())
       .then((data) => setMessage(data.message))
       .catch((err) => console.error(err));
   }, []);
   
   const fetchData = () => {
-    fetch('http://localhost:5004/data')
+    fetch('http://a1f75d954086d4c0f8d513f22340dc4a-1181113313.us-east-2.elb.amazonaws.com/data')
       .then((res) => res.json())
       .then((data) => setDataList(data));
   };
@@ -26,8 +26,8 @@ function App() {
       alert("Please enter something before submitting.");
       return;
     }
-    
-    fetch('http://localhost:5004/data', {
+
+    fetch('http://a1f75d954086d4c0f8d513f22340dc4a-1181113313.us-east-2.elb.amazonaws.com/data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ input }),
