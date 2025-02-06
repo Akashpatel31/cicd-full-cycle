@@ -38,14 +38,7 @@ jobs:
         run: |
               eksctl create cluster \
               --name my-new-cluster \
-              --region ${{ secrets.AWS_REGION }} \
-              --nodegroup-name my-nodegroup \
-              --node-type t2.micro \
-              --nodes 2 \
-              --nodes-min 1 \
-              --nodes-max 3 \
-              --managed \
-              --node-private-networking false
+              --region ${{ secrets.AWS_REGION }}
 
       - name: Update kubeconfig for EKS
         run: aws eks update-kubeconfig --name my-new-cluster --region ${{ secrets.AWS_REGION }}
