@@ -37,25 +37,51 @@ jobs:
       - name: Create EKS Cluster
         run: |
           if eksctl get cluster --name my-new-cluster --region ${{ secrets.AWS_REGION }}; then
-              echo "Cluster exists, updating..."
-          # Scale the node group to update instances
-            eksctl scale nodegroup --name ng-2c948c80 --cluster my-new-cluster --region ${{ secrets.AWS_REGION }} --nodes 3 --nodes-min 1 --nodes-max 5
+            echo "Cluster exists, updating instances..."
+            
+            # Check if the node group exists
+            if eksctl get nodegroup --cluster my-new-cluster --name ng-2c948c80 --region ${{ secrets.AWS_REGION }}; then
+              # Scale the node group to update instances
+              eksctl scale nodegroup --name ng-2c948c80 --cluster my-new-cluster --region ${{ secrets.AWS_REGION }} --nodes 3 --nodes-min 1 --nodes-max 5
+            else
+              echo "Node group does not exist, creating node group..."
+              # Create the node group if it does not exist
+              eksctl create nodegroup \
+                --cluster my-new-cluster \
+                --region ${{ secrets.AWS_REGION }} \
+                --name my-new-cluster-nodegroup \
+                --node-type t3.medium \
+                --nodes 3 \
+                --nodes-min 1 \
+                --nodes-max 5 \
+                --managed
+            fi
 
-          echo "Waiting for new nodes to be ready..."
-          sleep 60
+            # Wait for new instances to be ready
+            echo "Waiting for new nodes to be ready..."
+            for i in {1..30}; do
+              READY_NODES=$(kubectl get nodes --selector=eks.amazonaws.com/nodegroup=ng-2c948c80 --field-selector=status.conditions[?(@.type=="Ready")].status==True --no-headers | wc -l)
+              if [ "$READY_NODES" -ge 3 ]; then
+                echo "All nodes are ready."
+                break
+              fi
+              echo "Waiting for nodes to be ready... ($i/30)"
+              sleep 30
+            done
 
           else
-          echo "Cluster does not exist, creating a new cluster..."
+            echo "Cluster does not exist, creating a new cluster..."
 
-          eksctl create cluster \
-            --name my-new-cluster \
-            --region ${{ secrets.AWS_REGION }}
-            --nodegroup-name my-nodegroup \
-            --node-type t3.medium \
-            --nodes 3 \
-            --nodes-min 1 \
-            --nodes-max 5 \
-            --managed
+            # Create a new cluster if it doesn't exist
+            eksctl create cluster \
+              --name my-new-cluster \
+              --region ${{ secrets.AWS_REGION }} \
+              --nodegroup-name my-new-cluster-nodegroup \
+              --node-type t3.medium \
+              --nodes 3 \
+              --nodes-min 1 \
+              --nodes-max 5 \
+              --managed
           fi
 
       - name: Update kubeconfig for EKS
