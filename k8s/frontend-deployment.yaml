@@ -12,6 +12,8 @@ spec:
       labels:
         app: frontend
     spec:
+    nodeSelector:
+        instance-type: t2.micro  # Forces pod to run on t2.micro nodes
       containers:
       - name: frontend
         image: docker.io/akash3103/cicd-frontend:latest

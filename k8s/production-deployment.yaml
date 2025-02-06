@@ -15,6 +15,8 @@ spec:
         app: backend
     spec:
       containers:
+      nodeSelector:
+        instance-type: t2.micro  # Forces pod to run on t2.micro nodes
         - name: backend
           image: docker.io/akash3103/cicd-backend:latest
           ports:
