@@ -12,8 +12,6 @@ spec:
       labels:
         app: backend
     spec:
-      nodeSelector:
-        node.kubernetes.io/instance-type: "t2.micro"  # Ensure this matches your node label
       containers:
       - name: backend
         image: docker.io/akash3103/cicd-backend:latest

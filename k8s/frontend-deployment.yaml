@@ -12,8 +12,6 @@ spec:
       labels:
         app: frontend
     spec:
-      nodeSelector:
-        node.kubernetes.io/instance-type: "t2.micro"  # Ensure this matches your node label
       containers:
       - name: frontend
         image: docker.io/akash3103/cicd-frontend:latest
