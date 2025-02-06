@@ -27,7 +27,7 @@ jobs:
       
       - name: Install eksctl
         run: |
-          curl -sLO -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_linux_arm64.tar.gz"
+          curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_linux_arm64.tar.gz"
               # Download the tarball
           curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_linux_arm64.tar.gz"    
               # Extract the tarball to the /tmp directory
